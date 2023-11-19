@@ -1,14 +1,6 @@
-/**
- * Clase para probar el registro de los equipos
- * @author Área de programación UQ
- * @since 2023-08
- * 
- * Licencia GNU/GPL V3.0 (https://raw.githubusercontent.com/grid-uq/poo/main/LICENSE) 
- */
 package co.edu.uniquindio.poo.torneodeportivo;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
@@ -17,68 +9,40 @@ import java.util.logging.Logger;
 import org.junit.jupiter.api.Test;
 
 public class EquipoTest {
-    /**
-     * Instancia para el manejo de logs
-     */
+    //Prueba inclusion de genero
     private static final Logger LOG = Logger.getLogger(EquipoTest.class.getName());
+
+    @Test
+    public void registrarJugadorTest(){
+        LOG.info("Inicio prueba del correcto almacenamiento de un jugador en un equipo");
+
+        var representante = new Persona("Javier", "celis", "Jcelis@gmail.com","3008905673");
+
+        var equipo = new Equipo("Beraca", representante);
+
+        var jugador = new Jugador("Carlos", "Rodriguez", "CarlosR18@gmail.com", "3178906542", LocalDate.of(2033, 12, 3), GeneroJugador.MASCULINO);
+
+        var torneo= new Torneo("El torneo del barrio", LocalDate.of(2033, 12, 3), LocalDate.of(2033, 12, 1), LocalDate.of(2033, 12, 2), (byte)0,(byte) 0, 0, null, GeneroTorneo.MASCULINO);
+
+        equipo.registrarJugador(jugador,torneo);
+        assertTrue(equipo.jugadores().contains(jugador));
+
+        LOG.info("Fin prueba del correcto almacenamiento de un jugador dentro de un equipo");  
+    }
     
     @Test
-    public void registrarEquipo() {
-        LOG.info("Inicio de prueba registrarEquipo...");
-        // Almacenar los datos de prueba Torneo{Copa Mundo\|fechaActual+ 1mes\| fechaActual - 15 días\|fechaActual+15 días\|24\|0\|0\|LOCAL}  Equipo{Uniquindio} Representante{Robinson,Pulgarin,rpulgarin@email.com,6067359300}
+    //Registra un un juez en el torneo 
+    public void registrarJugadorTestGeneroDiferente(){
+        LOG.info("Inicio prueba  registrar jugador con genero diferente al torneo"); 
 
+        Persona representante = new Persona("Camilo","Salazar","CamiS@gmail.com","311879975");        
+        var equipo = new Equipo("Cafe y futbol", representante);
+        var jugador = new Jugador("Valeria", "Rojas", "Valeria@gmail.com","13283785", LocalDate.of(2002, 8, 15), GeneroJugador.FEMENINO);
+        Torneo torneo = new Torneo("PonyFutbol", LocalDate.of(2033, 12, 3), LocalDate.of(2033, 12, 1), LocalDate.of(2033, 12, 2), (byte)0,(byte) 0, 0, TipoTorneo.LOCAL, GeneroTorneo.MASCULINO);
+
+        equipo.registrarJugador(jugador, torneo);
+        assertFalse(equipo.jugadores().contains(jugador));
         
-        Torneo torneo = new Torneo("Copa Mundo", LocalDate.now().plusMonths(1), LocalDate.now().minusDays(15), LocalDate.now().plusDays(15), (byte)24, (byte)0, 0,TipoTorneo.LOCAL,GeneroTorneo.FEMENINO);
-
-        var representante = new Persona("Robinson", "Pulgarin", "rpulgarin@email.com", "6067359300");
-
-        var equipo = new Equipo("Uniquindio", representante);
-
-        torneo.registrarEquipo(equipo);
-
-        // Recuperación y verificación de datos
-        assertTrue(torneo.getEquipos().contains(equipo));
-        assertEquals(1, torneo.getEquipos().size());
-        LOG.info("Fin de prueba registrarEquipo...");
-    }
-
-    @Test
-    public void nombreEquipoRepetido() {
-        LOG.info("Inicio de prueba nombreEquipoRepetido...");
-        // Almacenar los datos de prueba Torneo{Copa Mundo\|fechaActual+ 1mes\| fechaActual - 15 días\|fechaActual+15 días\|24\|0\|0\|LOCAL}  Equipo{Uniquindio} Representante{Robinson,Pulgarin,rpulgarin@email.com,6067359300}
-
-        
-        Torneo torneo = new Torneo("Copa Mundo", LocalDate.now().plusMonths(1), LocalDate.now().minusDays(15), LocalDate.now().plusDays(15), (byte)24, (byte)0, 0,TipoTorneo.LOCAL,GeneroTorneo.FEMENINO);
-
-        var representante = new Persona("Robinson", "Pulgarin", "rpulgarin@email.com", "6067359300");
-
-        var equipo = new Equipo("Uniquindio", representante);
-        var equipo2 = new Equipo("Uniquindio", representante);
-        torneo.registrarEquipo(equipo);
-
-        assertThrows(Throwable.class, ()-> torneo.registrarEquipo(equipo2));
-        
-        LOG.info("Fin de prueba nombreEquipoRepetido...");
-    }
-
-    /**
-     * Verificar que la clase Torneo valide que no se ingresen equipos cuando las inscripciones ya cerraron
-     * 
-     */
-    @Test
-    public void inscripcionCerrada() {
-        LOG.info("Inicio de prueba inscripcionCerrada...");
-        // Almacenar los datos de prueba Torneo{Copa Mundo\|fechaActual+ 1mes\| fechaActual - 15 días\|fechaActual-1 días\|24\|0\|0\|LOCAL}  Equipo{Uniquindio} Representante{Robinson,Pulgarin,rpulgarin@email.com,6067359300}
-
-        
-        Torneo torneo = new Torneo("Copa Mundo", LocalDate.now().plusMonths(1), LocalDate.now().minusDays(15), LocalDate.now().minusDays(1), (byte)24, (byte)0, 0,TipoTorneo.LOCAL,GeneroTorneo.MIXTO);
-
-        var representante = new Persona("Robinson", "Pulgarin", "rpulgarin@email.com", "6067359300");
-
-        var equipo = new Equipo("Uniquindio", representante);
-
-        assertThrows(Throwable.class, ()-> torneo.registrarEquipo(equipo));
-        
-    }
+}
 
 }

@@ -82,9 +82,13 @@ public class TorneoTest {
     }
 
     
-        LOG.info("Fin de prueba  número de participantes negativo...");
-    }
-
+    @Test
+        public void testResultado() {
+            Resultado resultado = new Resultado(3, 1);
+            assertEquals(3, resultado.getPuntosEquipoLocal());
+            assertEquals(1, resultado.getPuntosEquipoVisitante());
+        }
+    
     @Test
         public void testSetPuntosEquipoLocal() {
             Resultado resultado = new Resultado(0, 0);
@@ -158,6 +162,21 @@ public class TorneoTest {
 
     @Test
     public void estadisticasEquipos(){
+    
+        var torneo = new Torneo("Torneo de Prueba",
+                 LocalDate.of(2033, 12, 8),LocalDate.of(2023, 11, 1), LocalDate.of(2033, 12, 2),(byte) 2, (byte) 18, 100, TipoTorneo.LOCAL, GeneroTorneo.MIXTO);
+
+        var representante1 = new Persona("Juan", "Castaño", "Jc@gmail.com", "3008905673");
+        var equipoLocal = new Equipo("Beraca", representante1);
+
+        var representante2 = new Persona("Armando", "Casas", "ARc@gmail.com", "3238205771");
+        var equipoVisitante = new Equipo("Cafe y futbol", representante2);
+        
+        torneo.registrarEquipo(equipoLocal);
+        torneo.registrarEquipo(equipoVisitante);
+
+        var juez1 = new Juez("Ramiro", "Castaño", "Rc@gmail.com", "321721927", "125821");
+        var juez2 = new Juez("Carlos", "Gimenez", "CG12@gmail.com", "316523996", "119274");
 
         Enfrentamiento enfrentamiento1 = new Enfrentamiento("Enfrentamiento1", LocalDateTime.now().plusDays(1),"Lugar1", EstadoEnfretamiento.PENDIENTE, equipoLocal, equipoVisitante, juez1);
         Enfrentamiento enfrentamiento2 = new Enfrentamiento("Enfrentamiento2", LocalDateTime.now().plusDays(1),"Lugar2", EstadoEnfretamiento.PENDIENTE, equipoLocal, equipoVisitante, juez2);

@@ -14,10 +14,12 @@ import java.util.function.Predicate;
 
 import static co.edu.uniquindio.poo.util.AssertionUtil.ASSERTION;
 
-public record Equipo(String nombre,Persona representante,Collection<Jugador> jugadores) {
+public record Equipo(String nombreEquipo,Persona representante,Collection<Jugador> jugadores) {
+    
     public Equipo{
-        ASSERTION.assertion( nombre != null && !nombre.isBlank() , "El nombre es requerido");
+        ASSERTION.assertion( nombreEquipo != null && !nombreEquipo.isBlank() , "El nombre es requerido");
         ASSERTION.assertion( representante != null , "El representante es requerido");
+
     }
 
     public Equipo(String nombre,Persona representante){
@@ -29,22 +31,23 @@ public record Equipo(String nombre,Persona representante,Collection<Jugador> jug
      * @param jugador Jugador que se desea registrar.
      */
     public void registrarJugador(Jugador jugador,Torneo torneo) {
-        validarGeneroJugador(jugador, torneo);
+        
         validarJugadorExiste(jugador);
+        if(validarGeneroJugador(jugador,torneo))
         jugadores.add(jugador);
     }
 
-   public static void validarGeneroJugador(Jugador jugador,Torneo torneo){    
-    GeneroJugador generoJugador = jugador.getGeneroJugador();
-    GeneroTorneo generoTorneo = torneo.getGeneroTorneo();
+    public boolean validarGeneroJugador(Jugador jugador,Torneo torneo) {
 
-    Map<GeneroTorneo, Set<GeneroJugador>> validaciones = new EnumMap<>(GeneroTorneo.class);       
-    validaciones.put(GeneroTorneo.MASCULINO, Collections.singleton(GeneroJugador.MASCULINO));
-    validaciones.put(GeneroTorneo.FEMENINO, Collections.singleton(GeneroJugador.FEMENINO));
-    validaciones.put(GeneroTorneo.MIXTO, EnumSet.allOf(GeneroJugador.class));
-
-    if (!validaciones.get(generoTorneo).contains(generoJugador)) {
-        throw new IllegalArgumentException("El género del jugador no coincide con el género del torneo.");
+    switch (torneo.getGeneroTorneo()) {
+        case MIXTO:
+            return true; // No hay restricciones de género en torneos mixtos
+        case MASCULINO:
+            return jugador.getGeneroJugador() == GeneroJugador.MASCULINO;
+        case FEMENINO:
+            return jugador.getGeneroJugador() == GeneroJugador.FEMENINO;
+        default:
+            throw new IllegalStateException("Tipo de género de torneo no válido");
     }
 
     }
@@ -69,6 +72,4 @@ public record Equipo(String nombre,Persona representante,Collection<Jugador> jug
         ASSERTION.assertion( !existeJugador,"El jugador ya esta registrado");
     }
 
-    public void registrarJugador(Jugador jugador) {
-    }
 }
