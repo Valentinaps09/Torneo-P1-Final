@@ -8,13 +8,8 @@
 package co.edu.uniquindio.poo.torneodeportivo;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Predicate;
 
 import static co.edu.uniquindio.poo.util.AssertionUtil.ASSERTION;
@@ -52,10 +47,8 @@ public record Equipo(String nombre,Persona representante,Collection<Jugador> jug
         throw new IllegalArgumentException("El género del jugador no coincide con el género del torneo.");
     }
 
-   
     }
-
-     
+    
     /**
      * Permimte buscar un jugador en el equipo basado en su nombre y apellido.
      * @param jugador Jugador que se desea buscar

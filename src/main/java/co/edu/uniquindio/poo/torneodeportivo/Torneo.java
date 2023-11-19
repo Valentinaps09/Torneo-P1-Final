@@ -10,9 +10,13 @@ package co.edu.uniquindio.poo.torneodeportivo;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import static co.edu.uniquindio.poo.util.AssertionUtil.ASSERTION;
 
 public class Torneo {
@@ -25,7 +29,12 @@ public class Torneo {
     private final int valorInscripcion;
     private final TipoTorneo tipoTorneo;
     private final Collection<Equipo> equipos;
-    private final GeneroTorneo generoTorneo;
+    protected final GeneroTorneo generoTorneo;
+    private final Collection<Juez> juecesParticipantes;
+    private Collection<Enfrentamiento>enfrentamientos;
+    private Collection<Enfrentamiento> enfrentamientosAgendados;
+    private Collection<Enfrentamiento> enfrentamientosFinalizados;
+
 
 public Torneo(String nombre, LocalDate fechaInicio,
         LocalDate fechaInicioInscripciones,
@@ -48,6 +57,12 @@ public Torneo(String nombre, LocalDate fechaInicio,
         this.tipoTorneo = tipoTorneo;
         this.equipos = new LinkedList<>();
         this.generoTorneo = generoTorneo;
+        this.juecesParticipantes = new LinkedList<>();
+        this.enfrentamientos = new LinkedList<>();
+        this.enfrentamientosAgendados =new LinkedList<>();
+        this.enfrentamientosFinalizados= new LinkedList<>();
+
+
     }
 
     public String getNombre() {
@@ -130,7 +145,7 @@ public Torneo(String nombre, LocalDate fechaInicio,
      * Valida que no exista ya un equipo registrado con el mismo nombre, en caso de haberlo genera un assertion error.
      */
     private void validarEquipoExiste(Equipo equipo) {
-        boolean existeEquipo = buscarEquipoPorNombre(equipo.nombre()).isPresent();
+        boolean existeEquipo = buscarEquipoPorNombre(equipo.nombreEquipo()).isPresent();
         ASSERTION.assertion( !existeEquipo,"El equipo ya esta registrado");
     }
 
@@ -148,7 +163,7 @@ public Torneo(String nombre, LocalDate fechaInicio,
      * @return Un Optional<Equipo> con el equipo cuyo nombre sea igual al nombre buscado, o un Optional vacio en caso de no encontrar un equipo con nombre igual al dado.
      */
     public Optional<Equipo> buscarEquipoPorNombre(String nombre){
-        Predicate<Equipo> condicion = equipo->equipo.nombre().equals(nombre);
+        Predicate<Equipo> condicion = equipo->equipo.nombreEquipo().equals(nombre);
         return equipos.stream().filter(condicion).findAny();
     }
 
@@ -159,9 +174,9 @@ public Torneo(String nombre, LocalDate fechaInicio,
      * @param nombre Nombre del equipo en que se desea registrar el jugador
      * @param jugador Jugador que se desea registrar.
      */
-    public void registrarJugador(String nombre, Jugador jugador) {
+    public void registrarJugador(String nombre, Jugador jugador,Torneo torneo) {
         var equipo = buscarEquipoPorNombre(nombre);
-        equipo.ifPresent( (e)->registrarJugador(e, jugador) );
+        equipo.ifPresent( (e)->registrarJugador(e, jugador,torneo) );
     }
 
     /**
@@ -171,11 +186,27 @@ public Torneo(String nombre, LocalDate fechaInicio,
      * @param equipo Equipo en el que se desea registrar el jugador.
      * @param jugador Jugador que se desea registrar.
      */
-    public void registrarJugador(Equipo equipo, Jugador jugador) {
+    public void registrarJugador(Equipo equipo, Jugador jugador,Torneo torneo) {
         ASSERTION.assertion( !LocalDate.now().isAfter(fechaCierreInscripciones) , "No se pueden registrar jugadores después del a fecha de cierre de inscripciones");
         validarLimiteEdadJugador(jugador); 
         validarJugadorExiste(jugador);
-        equipo.registrarJugador(jugador);
+        if(validarGeneroJugador(jugador,torneo))
+        equipo.registrarJugador(jugador,torneo);
+    }
+
+    public boolean validarGeneroJugador(Jugador jugador,Torneo torneo) {
+
+        switch (torneo.getGeneroTorneo()) {
+            case MIXTO:
+                return true; // No hay restricciones de género en torneos mixtos
+            case MASCULINO:
+                return jugador.getGeneroJugador() == GeneroJugador.MASCULINO;
+            case FEMENINO:
+                return jugador.getGeneroJugador() == GeneroJugador.FEMENINO;
+            default:
+                throw new IllegalStateException("Tipo de género de torneo no válido");
+        }
+
     }
 
     /**
@@ -206,4 +237,102 @@ public Torneo(String nombre, LocalDate fechaInicio,
         var edadAlInicioTorneo = jugador.calcularEdad(fechaInicio);
         ASSERTION.assertion( limiteEdad == 0 || limiteEdad >= edadAlInicioTorneo , "No se pueden registrar jugadores que excedan el limite de edad del torneo"); 
     }
+
+    public Collection<Juez> getJuecesParticipantes() {
+        return Collections.unmodifiableCollection(juecesParticipantes);
+    }
+    //Este método agrega un juez a la lista jueces participantes
+    public void registrarJuez(Juez juez) {
+        juecesParticipantes.add(juez);
+    }
+    
+    public Collection<Enfrentamiento> getEnfrentamientos() {
+        return Collections.unmodifiableCollection(enfrentamientos);
+    }
+
+    public Collection<Enfrentamiento> getEnfrentamientosAgendados() {
+        return Collections.unmodifiableCollection(enfrentamientosAgendados);
+    }
+
+    public Collection<Enfrentamiento> getEnfrentamientosFinalizados() {
+        return Collections.unmodifiableCollection(enfrentamientosFinalizados);
+    }
+
+    //Este método agrega un enfrentamiento a la lista de enfrentamientos agendados del torneo
+    
+    public void agendarEnfrentamiento(Enfrentamiento enfrentamiento) {
+        if(enfrentamientos.contains(enfrentamiento)){
+                enfrentamientosAgendados.add(enfrentamiento);
+        }else{
+                enfrentamientos.add(enfrentamiento);
+                enfrentamientosAgendados.add(enfrentamiento);
+            }
+        }
+    
+
+    //Este método registra el resultado de un enfrentamiento. Verifica si el enfrentamiento está en la lista de enfrentamientos agendados, establece el resultado y mueve el enfrentamiento a la lista de enfrentamientos finalizados. Si el enfrentamiento no está agendado, muestra un mensaje por consola.
+
+    public void registrarResultado(Enfrentamiento enfrentamiento, Resultado resultado) {
+
+        if (enfrentamientosAgendados.contains(enfrentamiento)) {
+            enfrentamiento.setResultado(resultado);
+            enfrentamientosAgendados.remove(enfrentamiento);
+            enfrentamientosFinalizados.add(enfrentamiento);
+
+        } else {
+            System.out.println("El enfrentamiento no está agendado para registrar resultados.");
+        }
+    }
+
+    //Este método devuelve una colección de enfrentamientos en los que participa un equipo con el nombre especificado.
+
+    public Collection<Enfrentamiento> getEnfrentamientosEquipo(String nombreEquipo) {
+        Predicate<Enfrentamiento> condicion = enfrentamiento ->
+                enfrentamiento.getEquipoLocal().nombreEquipo().equals(nombreEquipo) ||
+                enfrentamiento.getEquipoVisitante().nombreEquipo().equals(nombreEquipo);
+        return enfrentamientos.stream().filter(condicion).collect(Collectors.toList());
+    }
+
+    //Este método devuelve una colección de enfrentamientos en los que participa un juez con el número de licencia especificado.
+
+    public Collection<Enfrentamiento> getEnfrentamientosJuez(String numeroLicencia) {
+        Predicate<Enfrentamiento> condicion = enfrentamiento ->
+                enfrentamiento.getJuecesParticipantes().stream()
+                        .anyMatch(juez -> juez.getLicencia().equals(numeroLicencia));
+        return enfrentamientos.stream().filter(condicion).collect(Collectors.toList());
+    }
+
+    //Este método devuelve un mapa que relaciona cada equipo con sus estadísticas (victorias, empates y derrotas) en base a los enfrentamientos registrados. Itera sobre los enfrentamientos y actualiza las estadísticas de los equipos involucrados en esos enfrentamientos.
+    public Map<Equipo, EstadisticasEquipo> obtenerEstadisticasEquipos() {
+        Map<Equipo, EstadisticasEquipo> estadisticasEquipos = new HashMap<>();
+    
+        for (Equipo equipo : equipos) {
+            EstadisticasEquipo estadisticas = new EstadisticasEquipo();
+            estadisticasEquipos.put(equipo, estadisticas);
+        }
+    
+        for (Enfrentamiento enfrentamiento : enfrentamientos) {
+            Resultado resultado = enfrentamiento.getResultado();
+    
+            // Solo procesar enfrentamientos con resultado y equipos no nulos
+            if (resultado != null && enfrentamiento.getEquipoLocal() != null && enfrentamiento.getEquipoVisitante() != null) {
+                EstadisticasEquipo local = estadisticasEquipos.get(enfrentamiento.getEquipoLocal());
+                EstadisticasEquipo visitante = estadisticasEquipos.get(enfrentamiento.getEquipoVisitante());
+    
+                if (resultado.getPuntosEquipoLocal() > resultado.getPuntosEquipoVisitante()) {
+                    local.incrementarVictorias();
+                    visitante.incrementarDerrotas();
+                } else if (resultado.getPuntosEquipoLocal() < resultado.getPuntosEquipoVisitante()) {
+                    local.incrementarDerrotas();
+                    visitante.incrementarVictorias();
+                } else {
+                    local.incrementarEmpates();
+                    visitante.incrementarEmpates();
+                }
+            }
+        }
+    
+        return estadisticasEquipos;
+    }
 }
+

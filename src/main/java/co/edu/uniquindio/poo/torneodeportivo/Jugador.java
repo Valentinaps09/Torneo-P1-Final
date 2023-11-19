@@ -19,6 +19,7 @@ public class Jugador extends Persona {
 
         super(nombre, apellido, email, celular);
         ASSERTION.assertion( fechaNacimiento != null , "La fecha de nacimiento es requerida");
+        ASSERTION.assertion( generoJugador != null, "El genero del jugador es requerido");
         this.fechaNacimiento = fechaNacimiento;
         this.generoJugador = generoJugador;
     }

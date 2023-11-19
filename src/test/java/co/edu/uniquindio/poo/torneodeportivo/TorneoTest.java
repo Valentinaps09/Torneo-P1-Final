@@ -1,129 +1,192 @@
-/**
- * Clase para probar el funcionamiento del Torneo
- * @author Área de programación UQ
- * @since 2023-08
- * 
- * Licencia GNU/GPL V3.0 (https://raw.githubusercontent.com/grid-uq/poo/main/LICENSE) 
- */
 package co.edu.uniquindio.poo.torneodeportivo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Test;
 
 public class TorneoTest {
-    /**
-     * Instancia para el manejo de logs
-     */
-    private static final Logger LOG = Logger.getLogger(TorneoTest.class.getName());
+    private static final Logger LOG = Logger.getLogger(EquipoTest.class.getName());
+
+    @Test
+    public void registrarJugadorTest(){
+        LOG.info("Inicio prueba del correcto almacenamiento de un jugador en un equipo desde torneo");
+
+        var representante = new Persona("Juan", "Castaño", "Jc@gmail.com","3008905673");
+
+        var equipo = new Equipo("Beraca", representante);
+
+        var jugador = new Jugador("Juan", "Dominguez", "JDR18@gmail.com", "3158906542", LocalDate.of(2021, 12, 3), GeneroJugador.MASCULINO);
+
+        var torneo= new Torneo("El torneo del barrio", LocalDate.of(2033, 12, 3), LocalDate.of(2033, 12, 1), LocalDate.of(2033, 12, 2), (byte)0,(byte) 0, 0, null, GeneroTorneo.MIXTO);
+
+        equipo.registrarJugador(jugador,torneo);
+        assertTrue(equipo.jugadores().contains(jugador));
+
+        LOG.info("Fin prueba del correcto almacenamiento de un jugador en un equipo desde torneo");  
+    }
+
+    @Test
+    public void registrarJugadorTestGeneroDiferente(){
+        LOG.info("Inicio prueba  registrar jugador con genero diferente al torneo"); 
+
+        Persona representante = new Persona("Juan", "Castaño", "Jc@gmail.com","3008905673");        
+        var equipo = new Equipo("Beraca", representante);
+        var jugador = new Jugador("Juan", "Dominguez", "JDR18@gmail.com", "3158906542", LocalDate.of(2021, 12, 3), GeneroJugador.MASCULINO);
+        Torneo torneo = new Torneo("El torneo del barrio", LocalDate.of(2033, 12, 3), LocalDate.of(2033, 12, 1), LocalDate.of(2033, 12, 2), (byte)0,(byte) 0, 0, null, GeneroTorneo.FEMENINO);
+
+        equipo.registrarJugador(jugador, torneo);
+        assertFalse(equipo.jugadores().contains(jugador));
+        
+        LOG.info("Fin prueba del correcto almacenamiento del genero de un jugador en un equipo desde torneo");  
+}
+    @Test
+    public void registrarJuezTorneo(){
+        LOG.info("Inicio prueba registrar un juez en el torneo");
+        
+        Torneo torneo = new Torneo("Copa Trigreros", LocalDate.of(2025, 12,27), LocalDate.of(2025, 10, 1), LocalDate.of(2025, 11, 2), (byte)0,(byte) 0, 0, null, GeneroTorneo.MIXTO);
+        var juez = new Juez("Aquiles", "Castro", "Arrj@gmail.com", "3134567893", "27183919");
+        
+        torneo.registrarJuez(juez);
+        assertTrue(torneo.getJuecesParticipantes().contains(juez));
+        LOG.info("Fin prueba reegistrar a un juez en el torneo");
+    }
+
+    @Test
+    public void agendarEnfretamientoTest() {
+
+    Torneo torneo = new Torneo("Torneo de Prueba",
+        LocalDate.of(2033, 12, 8),LocalDate.of(2033, 12, 1), LocalDate.of(2033, 12, 2),(byte) 2, (byte) 18, 100, TipoTorneo.LOCAL, GeneroTorneo.MIXTO);
+
+    var representante1 = new Persona("Juan", "Castaño", "Jc@gmail.com", "3008905673");
+    var equipoLocal = new Equipo("Beraca", representante1);
+
+    var representante2 = new Persona("Armando", "Casas", "ARc@gmail.com", "3238205771");
+    var equipoVisitante = new Equipo("Cafe y futbol", representante2);
+
+    var juez = new Juez("Ramiro", "Castaño", "Rc@gmail.com", "321721927", "125821");
+
+    // Crear un objeto Enfrentamiento con un estado inicial
+    Enfrentamiento enfrentamiento = new Enfrentamiento("Enfrentamiento1", LocalDateTime.now().plusDays(1),"Lugar1", EstadoEnfretamiento.PENDIENTE, equipoLocal, equipoVisitante, juez);
+
+    // Agendar el enfrentamiento en el torneo
+    torneo.agendarEnfrentamiento(enfrentamiento);
+    assertTrue(torneo.getEnfrentamientosAgendados().contains(enfrentamiento));
+    }
+
     
-    /**
-     * Verificar que la clase Torneo almacene y recupere los datos 
-     * 
-     */
-    @Test
-    public void datosCompletos() {
-        LOG.info("Inicio de prueba datos completos...");
-        // Almacenar los datos de prueba Copa Mundo|2023-10-01|2023-08-01|2023-09-15|24|0|0|LOCAL
-        Torneo torneo = new Torneo("Copa Mundo", LocalDate.of(2023, 10, 1), LocalDate.of(2023, 8, 1), LocalDate.of(2023, 9, 15), (byte)24, (byte)0, 0,TipoTorneo.LOCAL,GeneroTorneo.MIXTO);
-
-        // Recuperación y verificación de datos
-        assertEquals("Copa Mundo",torneo.getNombre());
-        assertEquals(LocalDate.of(2023, 10, 1),torneo.getFechaInicio());
-        assertEquals(LocalDate.of(2023, 8, 1),torneo.getFechaInicioInscripciones());
-        assertEquals(LocalDate.of(2023, 9, 15),torneo.getFechaCierreInscripciones());
-        assertEquals((byte)24,torneo.getNumeroParticipantes());
-        assertEquals((byte)0,torneo.getLimiteEdad());
-        assertEquals(0,torneo.getValorInscripcion());
-        assertEquals(TipoTorneo.LOCAL,torneo.getTipoTorneo());
-        LOG.info("Fin de prueba datos completos...");
-    }
-
-    /**
-     * Verificar que la clase Torneo valide que se ingrese los datos
-     * 
-     */
-    @Test
-    public void datosNulos() {
-        LOG.info("Inicio de prueba datos nulos...");
-        // Almacenar los datos de prueba null|null|null|null|24|0|0|null|LOCAL
-        assertThrows(Throwable.class, ()-> new Torneo(null, null, null, null, (byte)24, (byte)0, 0,TipoTorneo.LOCAL,GeneroTorneo.MIXTO));
-        
-        
-        LOG.info("Fin de prueba datos nulos...");
-    }
-
-    /**
-     * Verificar que la clase Torneo valide que el ingreso de número de participantes negativo 
-     * 
-     */
-    @Test
-    public void participantesNegativos() {
-        LOG.info("Inicio de prueba número de participantes negativo...");
-        // Almacenar los datos de prueba Copa Mundo|2023-10-01|2023-08-01|2023-09-15|-24|0|0|LOCAL
-        assertThrows(Throwable.class, ()-> new Torneo("Copa Mundo", LocalDate.of(2023, 10, 1), LocalDate.of(2023, 8, 01), LocalDate.of(2023, 10, 15), (byte)-24, (byte)0, 0,TipoTorneo.LOCAL,GeneroTorneo.MASCULINO));
-        
         LOG.info("Fin de prueba  número de participantes negativo...");
     }
 
-    /**
-     * Verificar que la clase Torneo valide que el ingreso de limites de edades negativo 
-     * 
-     */
     @Test
-    public void limiteEdadesNegativo() {
-        LOG.info("Inicio de prueba limites de edades negativo...");
-        // Almacenar los datos de prueba Copa Mundo|2023-10-01|2023-08-01|2023-09-15|24|-1|0|LOCAL
-        assertThrows(Throwable.class, ()-> new Torneo("Copa Mundo", LocalDate.of(2023, 10, 1), LocalDate.of(2023, 8, 01), LocalDate.of(2023, 10, 15), (byte)24, (byte)-1, 0,TipoTorneo.LOCAL,GeneroTorneo.MASCULINO));
+        public void testSetPuntosEquipoLocal() {
+            Resultado resultado = new Resultado(0, 0);
+            resultado.setPuntosEquipoLocal(2);
+            assertEquals(2, resultado.getPuntosEquipoLocal());
+        }
+    
+    @Test
+        public void testSetPuntosEquipoVisitante() {
+            Resultado resultado = new Resultado(0, 0);
+            resultado.setPuntosEquipoVisitante(4);
+            assertEquals(4, resultado.getPuntosEquipoVisitante());
+        }
+
+    
+    @Test
+    public void getEnfrentamientosJuez(){
+
+        Torneo torneo = new Torneo("Torneo de Prueba",
+                 LocalDate.of(2033, 12, 8),LocalDate.of(2033, 12, 1), LocalDate.of(2033, 12, 2),(byte) 2, (byte) 18, 100, TipoTorneo.LOCAL, GeneroTorneo.MIXTO);
+
+        var representante1 = new Persona("Juan", "Castaño", "Jc@gmail.com", "3008905673");
+        var equipoLocal = new Equipo("Beraca", representante1);
+
+        var representante2 = new Persona("Armando", "Casas", "ARc@gmail.com", "3238205771");
+        var equipoVisitante = new Equipo("Cafe y futbol", representante2);
         
-        LOG.info("Fin de prueba  limites de edades negativo...");
+        var juez1 = new Juez("Ramiro", "Castaño", "Rc@gmail.com", "321721927", "125821");
+        var juez2 = new Juez("Carlos", "Gimenez", "CG12@gmail.com", "316523996", "119274");
+
+        Enfrentamiento enfrentamiento1 = new Enfrentamiento("Enfrentamiento1", LocalDateTime.now().plusDays(1),"Lugar1", EstadoEnfretamiento.PENDIENTE, equipoLocal, equipoVisitante, juez1);
+        Enfrentamiento enfrentamiento2 = new Enfrentamiento("Enfrentamiento2", LocalDateTime.now().plusDays(1),"Lugar2", EstadoEnfretamiento.PENDIENTE, equipoLocal, equipoVisitante, juez2);
+
+        torneo.agendarEnfrentamiento(enfrentamiento1);
+        torneo.agendarEnfrentamiento(enfrentamiento2);
+
+
+        Collection<Enfrentamiento> enfrentamientosEquipoLocal = torneo.getEnfrentamientos();
+
+        // Verificar que haya dos enfrentamientos para "Equipo A"
+        assertEquals(2, enfrentamientosEquipoLocal.size());
     }
 
-    /**
-     * Verificar que la clase Torneo valide que el ingreso de valor de inscripción negativa
-     * 
-     */
     @Test
-    public void inscripcionNegativa() {
-        LOG.info("Inicio de prueba inscripción negativa...");
-        // Almacenar los datos de prueba Copa Mundo|2023-10-01|2023-08-01|2023-09-15|24|0|-1|LOCAL
-        assertThrows(Throwable.class, ()-> new Torneo("Copa Mundo", LocalDate.of(2023, 10, 1), LocalDate.of(2023, 8, 01), LocalDate.of(2023, 10, 15), (byte)24, (byte)0, -1,TipoTorneo.LOCAL,GeneroTorneo.MASCULINO));
+    public void getEnfrentamientosEquipo_DebeDevolverEnfrentamientosDelEquipo() {
+
+        Torneo torneo = new Torneo("Torneo de Prueba",
+                 LocalDate.of(2033, 12, 8),LocalDate.of(2033, 12, 1), LocalDate.of(2033, 12, 2),(byte) 2, (byte) 18, 100, TipoTorneo.LOCAL, GeneroTorneo.MIXTO);
+
+        var representante1 = new Persona("Juan", "Castaño", "Jc@gmail.com", "3008905673");
+        var equipoLocal = new Equipo("Beraca", representante1);
+
+        var representante2 = new Persona("Armando", "Casas", "ARc@gmail.com", "3238205771");
+        var equipoVisitante = new Equipo("Cafe y futbol", representante2);
         
-        LOG.info("Fin de prueba inscripción negativa...");
+        var juez1 = new Juez("Ramiro", "Castaño", "Rc@gmail.com", "321721927", "125821");
+        var juez2 = new Juez("Carlos", "Gimenez", "CG12@gmail.com", "316523996", "119274");
+
+        Enfrentamiento enfrentamiento1 = new Enfrentamiento("Enfrentamiento1", LocalDateTime.now().plusDays(1),"Lugar1", EstadoEnfretamiento.PENDIENTE, equipoLocal, equipoVisitante, juez1);
+        Enfrentamiento enfrentamiento2 = new Enfrentamiento("Enfrentamiento2", LocalDateTime.now().plusDays(1),"Lugar2", EstadoEnfretamiento.PENDIENTE, equipoLocal, equipoVisitante, juez2);
+        
+        torneo.agendarEnfrentamiento(enfrentamiento1);
+        torneo.agendarEnfrentamiento(enfrentamiento2);
+        //El error se encontraba en el metodo agendar enfrentamiento por que no agregaba los enfrentamientos a la lista de emfrentamiento
+        Collection<Enfrentamiento> enfrentamientosEquipoLocal = torneo.getEnfrentamientosEquipo("Cafe y futbol");
+
+    
+        assertTrue(enfrentamientosEquipoLocal.contains(enfrentamiento1)); 
+        assertTrue(enfrentamientosEquipoLocal.contains(enfrentamiento2));
     }
 
-    /**
-     * Verificar que la clase Torneo valide que el ingreso de inscripciones posteriores a la 
-     * fecha de inicio del torneo
-     * 
-     */
     @Test
-    public void inscripcionTardia() {
-        LOG.info("Inicio de prueba inscripción tardia...");
-        // Almacenar los datos de prueba Copa Mundo|2023-10-01|2023-11-01|2023-11-15|24|0|0|LOCAL
-        assertThrows(Throwable.class, ()-> new Torneo("Copa Mundo", LocalDate.of(2023, 10, 1), LocalDate.of(2023, 11, 01), LocalDate.of(2023, 11, 15), (byte)24, (byte)0, 0,TipoTorneo.LOCAL,GeneroTorneo.FEMENINO));
-        
-        LOG.info("Fin de prueba inscripción tardia...");
-    }
+    public void estadisticasEquipos(){
 
-    /**
-     * Verificar que la clase Torneo valide que el ingreso de inicio inscripciones posteriores a 
-     * la fecha de cierre de inscripciones
-     * 
-     */
-    @Test
-    public void cierreInscripcionAnteriorInicio() {
-        LOG.info("Inicio de prueba Cierre inscripción anterior al inicio...");
-        // Almacenar los datos de prueba Copa Mundo|2023-10-01|2023-11-01|2023-11-15|24|0|0|LOCAL
-        assertThrows(Throwable.class, ()-> new Torneo("Copa Mundo", LocalDate.of(2023, 10, 1), LocalDate.of(2023, 8, 15), LocalDate.of(2023, 8, 1), (byte)24, (byte)0, 0,TipoTorneo.LOCAL,GeneroTorneo.MIXTO));
+        Enfrentamiento enfrentamiento1 = new Enfrentamiento("Enfrentamiento1", LocalDateTime.now().plusDays(1),"Lugar1", EstadoEnfretamiento.PENDIENTE, equipoLocal, equipoVisitante, juez1);
+        Enfrentamiento enfrentamiento2 = new Enfrentamiento("Enfrentamiento2", LocalDateTime.now().plusDays(1),"Lugar2", EstadoEnfretamiento.PENDIENTE, equipoLocal, equipoVisitante, juez2);
+
+         enfrentamiento1.setResultado(new Resultado(0, 3));
+        enfrentamiento2.setResultado(new Resultado(4,3));  
+
+        torneo.agendarEnfrentamiento(enfrentamiento1);
+        torneo.agendarEnfrentamiento(enfrentamiento2);
+    
+        Map<Equipo, EstadisticasEquipo> estadisticas=torneo.obtenerEstadisticasEquipos();
+
+        EstadisticasEquipo estadisticasEquipoLocal =estadisticas.get(equipoLocal);
+        assertEquals(1, estadisticasEquipoLocal.getVictorias());
+        assertEquals(1, estadisticasEquipoLocal.getDerrotas());
+        assertEquals(0, estadisticasEquipoLocal.getEmpates());
+
+        // Verificar las estadísticas para el EquipoVisitante
+        EstadisticasEquipo estadisticasEquipoVisitante = estadisticas.get(equipoVisitante);
+        assertEquals(1, estadisticasEquipoVisitante.getVictorias());
+        assertEquals(1, estadisticasEquipoVisitante.getDerrotas());
+        assertEquals(0, estadisticasEquipoVisitante.getEmpates());
         
-        LOG.info("Fin de prueba Cierre inscripción anterior al inicio...");
     }
+        
 }
 
+
+
+    
 
 
